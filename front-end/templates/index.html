@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="{{ url_for('static', filename='style/landing.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='script/landing.js') }}"></script>
+</head>
+<body>
+    <div class="promptBox">
+            <div class="inputDiv">
+                <input id="promptInput" name="prompt"></input>
+                <button id="submitBtn" name="submit">Talk to Unity</button>
+            </div>
+        <textarea id="outputTextArea" name="output_text"></textarea>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+.inputDiv {
+    color: green;
+    background-color: aliceblue;
+    background: local;
+    display: flex;
+    margin-bottom: 1%;
+}
+
+.promptBox {
+    width: 50%;
+    height: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#outputTextArea {
+    width: 100%;
+}
+
+#submitBtn {
+    width: 25%
+}
+
+#promptInput {
+    width: 75%;
+}
