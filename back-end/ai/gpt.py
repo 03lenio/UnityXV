@@ -64,7 +64,7 @@ class GPT:
         self._history.append({"role": "user", "content": message})
         memory = Memory(message, time.time())
         self.database_manager.save_memory_to_db(memory)
-        if len(self.get_history()) > 10:
+        if len(self.get_history()) > 5:
             self._history.pop(0)
 
     def query_gpt(self, prompt: str) -> str:
@@ -75,8 +75,13 @@ class GPT:
                 original_prompt = prompt
                 prompt = f"You are UnityXV, a personal AI assistant with a sense of humor and sarcasm, you are not cringe, and also a servant.\n{original_prompt}"
                 self.logger.logger.info("Reminding GPT of Unity's personality...")
+            contexts = self.database_manager.get_context_from_db(5)
+            for context in contexts:
+                context_elem = context.get("context")
+                self.logger.logger.info(f"Loading context:\n{context_elem}")
+                self.get_history().append({"role": "user", "content": f"Keep this information in mind when replying and apply it if you think it adds to the conversation; reply like a human would: {context_elem}"})
             if len(self.get_history()) == 0:
-                previous_history = self.database_manager.get_memories_from_db_str(10)
+                previous_history = self.database_manager.get_memories_from_db_str(5)
                 messages = []
                 for message in previous_history:
                     messages.append({"role": "user", "content": message})

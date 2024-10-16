@@ -28,10 +28,14 @@ def query():
         logger.logger.info(result)
         logger.logger.info(local_gpt.get_history())
         logger.logger.info(len(local_gpt.get_history()))
-        if local_gpt.get_query_count() == 2:
-            memories = database_manager.get_memories_from_db(2)
-            flashback = brain.summarize_memories(memories)
-            database_manager.save_context_to_db(flashback)
+        if (local_gpt.get_query_count() % 5) == 0:
+            memories = database_manager.get_memories_from_db(5)
+            context = brain.summarize_memories(memories)
+            database_manager.save_context_to_db(context)
+        if database_manager.get_non_obsolete_context_count() >= 5:
+            contexts = database_manager.get_context_from_db(5)
+            summarized_context = brain.summarize_context(contexts, database_manager)
+            database_manager.save_context_to_db(summarized_context)
         return jsonify({"result": result})
     return jsonify({"result": "Sorry there is an issue communicating with the OpenAI API"})
 
