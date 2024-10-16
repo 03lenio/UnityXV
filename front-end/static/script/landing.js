@@ -14,6 +14,7 @@ window.addEventListener('load', function () {
                 .then(data => {
                     // Update the textarea with the response from the server
                     document.getElementById("outputTextArea").value = data.result;
+                    document.getElementById("promptInput").value = "";
                 })
                 .catch(error => console.error('Error:', error));
             });
