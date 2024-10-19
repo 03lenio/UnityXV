@@ -13,21 +13,28 @@ app = Flask(__name__)
 
 @app.route('/debug')
 def debug():
-    req = local_gpt.query_gpt("You are UnityXV, a personal AI assistant with a sense of humor and sarcasm, you are not cringe, and also a servant.", 800, 0.7, 0.95)
-    logger.logger.debug(req)
-    return req["choices"][0]["message"]["content"]
+    return str("Yes, WeatherInLocation".count(",") == 1)
 
 
 @app.route('/query', methods=['POST'])
 def query():
     prompt = request.get_json()["prompt"]
     logger.logger.info(prompt)
-    for task in tasks.get_tasks():
+    should_execute = tasks.smart_should_execute(prompt, local_gpt)
+    if should_execute["Decision"] == "yes":
+        task_str = should_execute["Task"]
+        task = tasks.get_task_by_name(task_str)
+        if tasks.is_task_registered(task):
+            if isinstance(task, WeatherTask):
+                task.set_task_str(prompt)
+                return jsonify({"result": task.execute({"gpt": local_gpt})})
+    # Old implementation, more stable but will eventually consume way more tokens and processing time as the amount of tasks go up
+    """for task in tasks.get_tasks():
         logger.logger.info(task)
         if task.smart_should_execute(prompt, local_gpt):
             if isinstance(task, WeatherTask):
                 task.set_task_str(prompt)
-                return jsonify({"result": task.execute({"gpt": local_gpt})})
+                return jsonify({"result": task.execute({"gpt": local_gpt})})"""
     gpt_req = local_gpt.query_gpt(prompt)
     logger.logger.debug(gpt_req)
     if gpt_req:
