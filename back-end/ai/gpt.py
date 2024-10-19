@@ -76,10 +76,14 @@ class GPT:
                 prompt = f"You are UnityXV, a personal AI assistant with a sense of humor and sarcasm, you are not cringe, and also a servant.\n{original_prompt}"
                 self.logger.logger.info("Reminding GPT of Unity's personality...")
             contexts = self.database_manager.get_context_from_db(5)
+            context_count = 0
             for context in contexts:
+                context_count += 1
                 context_elem = context.get("context")
                 self.logger.logger.info(f"Loading context:\n{context_elem}")
                 self.get_history().append({"role": "user", "content": f"Keep this information in mind when replying and apply it if you think it adds to the conversation; reply like a human would: {context_elem}"})
+            if context_count == 1:
+                self.get_history().append({"role": "user", "content": "Ignore the above message, just use it as a guide on how to interact with the user, the following chat log represents the last 5 messages the user sent."})
             if len(self.get_history()) == 0:
                 previous_history = self.database_manager.get_memories_from_db_str(5)
                 messages = []
@@ -89,16 +93,40 @@ class GPT:
                 self.logger.logger.info("Restoring last 10 memories")
                 self.logger.logger.debug(self.get_history())
             self.logger.logger.info("Querying GPT with prompt: {}".format(prompt))
-            self.append_history(prompt)
+            self.append_history(f"give a brief reply in about 40 tokens:\n{prompt}")
             openai.api_key = self.get_api_key()
             openai.project = self.get_project_id()
             try:
                 response = openai.chat.completions.create(
-                    model="gpt-4",  # Or "gpt-3.5-turbo"
-                    messages=self.get_history()
+                    model="gpt-3.5-turbo",  # Or "gpt-3.5-turbo" # CHANGED # Was gpt-4
+                    messages=self.get_history(),
+                    max_tokens=38
                 )
                 if response.choices[0]:
                     self.increment_query_count()
+                    return response.choices[0].message.content
+                else:
+                    return "I was not able to respond to that, please try again."
+            except requests.RequestException as e:
+                self.logger.logger.error(f"Failed to make the request. Error: {e}")
+        else:
+            return "I could not query that since the GPT could not be initialized."
+
+    def query_gpt_for_task(self, prompt: str) -> str:
+        if self.is_initialized:
+            # Maybe implement memories of these for song recommendations or sth
+            openai.api_key = self.get_api_key()
+            openai.project = self.get_project_id()
+            prompt_to_submit = [{"role": "user", "content": prompt}]
+            try:
+                response = openai.chat.completions.create(
+                    model="gpt-4",  # Or "gpt-3.5-turbo"
+                    messages=prompt_to_submit,
+                    max_tokens=20,
+                    temperature=0.3
+                )
+                if response.choices[0]:
+                    self.logger.logger.info(response.choices[0].message.content)
                     return response.choices[0].message.content
                 else:
                     return "I was not able to respond to that, please try again."

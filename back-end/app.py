@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
+from .tasks.weather.weather_task import WeatherTask
 from .db.database_manager import DatabaseManager
 from .memories.brain import Brain
 from .util.logger import Logger
+from .tasks.tasks import Tasks
 from .ai.gpt import GPT
-import datetime
 import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -21,6 +22,12 @@ def debug():
 def query():
     prompt = request.get_json()["prompt"]
     logger.logger.info(prompt)
+    for task in tasks.get_tasks():
+        logger.logger.info(task)
+        if task.smart_should_execute(prompt, local_gpt):
+            if isinstance(task, WeatherTask):
+                task.set_task_str(prompt)
+                return jsonify({"result": task.execute({"gpt": local_gpt})})
     gpt_req = local_gpt.query_gpt(prompt)
     logger.logger.debug(gpt_req)
     if gpt_req:
@@ -51,6 +58,7 @@ if __name__ == '__main__':
     local_gpt = GPT(config_path)
     brain = Brain(config_path, local_gpt)
     database_manager = DatabaseManager()
+    tasks = Tasks()
     app.template_folder = os.path.join(BASE_DIR, 'front-end', 'templates')
     app.static_folder = os.path.join(BASE_DIR, 'front-end', 'static')
     app.run(debug=False)
