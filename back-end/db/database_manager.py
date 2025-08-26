@@ -1,9 +1,7 @@
-import time
-
-import pymongo
-
 from ..memories.memory import Memory
 from pymongo import MongoClient
+import pymongo
+import time
 
 
 class DatabaseManager:

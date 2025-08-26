@@ -93,14 +93,14 @@ class GPT:
                 self.logger.logger.info("Restoring last 10 memories")
                 self.logger.logger.debug(self.get_history())
             self.logger.logger.info("Querying GPT with prompt: {}".format(prompt))
-            self.append_history(f"give a brief reply in about 40 tokens:\n{prompt}")
+            self.append_history(f"give a brief reply in about 80 tokens:\n{prompt}")
             openai.api_key = self.get_api_key()
             openai.project = self.get_project_id()
             try:
                 response = openai.chat.completions.create(
                     model="gpt-3.5-turbo",  # Or "gpt-3.5-turbo" # CHANGED # Was gpt-4
                     messages=self.get_history(),
-                    max_tokens=38
+                    max_tokens=80
                 )
                 if response.choices[0]:
                     self.increment_query_count()

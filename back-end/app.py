@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from .tasks.weather.weather_task import WeatherTask
 from .db.database_manager import DatabaseManager
+from .util.utility import load_from_config
+from .audio.synthesizer import Synthesizer
 from .memories.brain import Brain
 from .util.logger import Logger
 from .tasks.tasks import Tasks
@@ -50,9 +52,19 @@ def query():
             contexts = database_manager.get_context_from_db(5)
             summarized_context = brain.summarize_context(contexts, database_manager)
             database_manager.save_context_to_db(summarized_context)
+
         return jsonify({"result": result})
     return jsonify({"result": "Sorry there is an issue communicating with the OpenAI API"})
 
+
+@app.route('/synthesize/<text>', methods=['GET'])
+def synthesize(text):
+    audio_data = synthesizer.synthesize_speech(load_from_config(config_path, "VoiceName"), text)
+    if audio_data:
+        audio_data.seek(0)  # Ensure the stream is at the beginning
+        return send_file(audio_data, mimetype='audio/wav', as_attachment=True, download_name='synthesized_audio.wav')
+    else:
+        return "Speech synthesis failed.", 500
 
 @app.route('/')
 def hello_world():  # put application's code here
@@ -66,6 +78,8 @@ if __name__ == '__main__':
     brain = Brain(config_path, local_gpt)
     database_manager = DatabaseManager()
     tasks = Tasks()
+    synthesizer = Synthesizer(config_path)
+    synthesizer.init_synthesizer()
     app.template_folder = os.path.join(BASE_DIR, 'front-end', 'templates')
     app.static_folder = os.path.join(BASE_DIR, 'front-end', 'static')
     app.run(debug=False)

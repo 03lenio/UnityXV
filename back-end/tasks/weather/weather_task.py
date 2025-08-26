@@ -12,7 +12,6 @@ class WeatherTask(Task):
         if parameters is not None:
             gpt = parameters['gpt']
             location = self.extract_task_params("Extract the location mentioned here in one word", gpt)
-            print(location)
             geolocator = Nominatim(user_agent="UnityXV")
             location_coords = geolocator.geocode(location)
             if location_coords is not None:
@@ -27,7 +26,7 @@ class WeatherTask(Task):
                 response = requests.get(url, params=params)
                 # Convert the response to JSON
                 weather_data = response.json()
-                print(response.json())
+                print(weather_data)
                 return weather_data
             else:
                 return "I could not find this place anywhere, did you just make that up?"
